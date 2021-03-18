@@ -1,4 +1,3 @@
-module github.com/nheingit/learn-go
+module github.com/nheingit/learnGo
 
 go 1.16
-

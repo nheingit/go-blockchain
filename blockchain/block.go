@@ -1,10 +1,5 @@
 package blockchain
 
-import (
-	"bytes"
-	"crypto/sha256"
-)
-
 // BlockChain is an array of pointers
 type BlockChain struct {
 	Blocks []*Block
@@ -15,19 +10,28 @@ type Block struct {
 	Hash     []byte
 	Data     []byte
 	PrevHash []byte
+	Nonce    int
 }
+
+// Commenting out this code as our new proof of work algorithm takes care of the hashing functionality of the blocks
 
 // DeriveHash will hash the data of the current block, along with the hash from the block preceding it
-func (b *Block) DeriveHash() {
-	info := bytes.Join([][]byte{b.Data, b.PrevHash}, []byte{})
-	hash := sha256.Sum256(info)
-	b.Hash = hash[:]
-}
+//func (b *Block) DeriveHash() {
+//info := bytes.Join([][]byte{b.Data, b.PrevHash}, []byte{})
+//hash := sha256.Sum256(info)
+//b.Hash = hash[:]
+//}
+///////////////////////////////////////
 
-// CreateBlock creates a block
+// CreateBlock creates a block and performs a proof of work algorithm
 func CreateBlock(data string, prevHash []byte) *Block {
-	block := &Block{[]byte{}, []byte(data), prevHash}
-	block.DeriveHash()
+	block := &Block{[]byte{}, []byte(data), prevHash, 0}
+	pow := NewProofOfWork(block)
+	nonce, hash := pow.Run()
+
+	block.Hash = hash[:]
+	block.Nonce = nonce
+
 	return block
 }
 

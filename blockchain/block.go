@@ -1,9 +1,10 @@
 package blockchain
 
-// BlockChain is an array of pointers
-type BlockChain struct {
-	Blocks []*Block
-}
+import (
+	"bytes"
+	"encoding/gob"
+	"log"
+)
 
 // Block is a single unit in the blockchain
 type Block struct {
@@ -35,19 +36,38 @@ func CreateBlock(data string, prevHash []byte) *Block {
 	return block
 }
 
-// AddBlock Will add a Block type unit to a blockchain
-func (chain *BlockChain) AddBlock(data string) {
-	prevBlock := chain.Blocks[len(chain.Blocks)-1]
-	new := CreateBlock(data, prevBlock.PrevHash)
-	chain.Blocks = append(chain.Blocks, new)
-}
-
 // Genesis needs to be the first block in a chain, as the first block doesn't have an address to point back to
 func Genesis() *Block {
 	return CreateBlock("Genesis", []byte{})
 }
 
-// InitBlockChain will be what starts a new blockChain
-func InitBlockChain() *BlockChain {
-	return &BlockChain{[]*Block{Genesis()}}
+func (b *Block) Serialize() []byte {
+	var res bytes.Buffer
+	encoder := gob.NewEncoder(&res)
+
+	err := encoder.Encode(b)
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return res.Bytes()
+}
+
+func Handle(err error) {
+	if err != nil {
+		log.Panic(err)
+	}
+}
+
+func Deserialize(data []byte) *Block {
+	var block Block
+
+	decoder := gob.NewDecoder(bytes.NewReader(data))
+
+	err := decoder.Decode(&block)
+
+	Handle(err)
+
+	return &block
 }

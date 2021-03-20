@@ -41,6 +41,20 @@ func (pow *ProofOfWork) InitData(nonce int) []byte {
 	return data
 }
 
+//Validate will check our Run() function performed as expected
+func (pow *ProofOfWork) Validate() bool {
+	var bigIntHash big.Int
+
+	data := pow.InitData(pow.Block.Nonce)
+
+	hash := sha256.Sum256(data)
+	bigIntHash.SetBytes(hash[:])
+
+	//this will return true if the hash is valid, and false if not
+	return bigIntHash.Cmp(pow.Target) == -1
+
+}
+
 //Run will hash our data, turn that hash into a big int, and then compare that big int to our Target which is inside  the Proof Of Work Struct
 func (pow *ProofOfWork) Run() (int, []byte) {
 	var bigIntHash big.Int

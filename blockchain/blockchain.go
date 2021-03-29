@@ -15,6 +15,10 @@ type BlockChain struct {
 	LastHash []byte
 	Database *badger.DB
 }
+type BlockChainIterator struct {
+	CurrentHash []byte
+	Database    *badger.DB
+}
 
 // InitBlockChain will be what starts a new blockChain
 func InitBlockChain() *BlockChain {
@@ -41,7 +45,11 @@ func InitBlockChain() *BlockChain {
 		} else {
 			item, err := txn.Get([]byte("lh"))
 			Handle(err)
-			lastHash, err = item.Value()
+			err = item.Value(func(val []byte) error {
+				lastHash = val
+				return nil
+			})
+			Handle(err)
 			return err
 		}
 	})
@@ -53,7 +61,58 @@ func InitBlockChain() *BlockChain {
 
 // AddBlock Will add a Block type unit to a blockchain
 func (chain *BlockChain) AddBlock(data string) {
-	prevBlock := chain.Blocks[len(chain.Blocks)-1]
-	new := CreateBlock(data, prevBlock.PrevHash)
-	chain.Blocks = append(chain.Blocks, new)
+	var lastHash []byte
+
+	err := chain.Database.View(func(txn *badger.Txn) error {
+		item, err := txn.Get([]byte("lh"))
+		Handle(err)
+		err = item.Value(func(val []byte) error {
+			lastHash = val
+			return nil
+		})
+		Handle(err)
+		return err
+	})
+	Handle(err)
+
+	newBlock := CreateBlock(data, lastHash)
+
+	err = chain.Database.Update(func(transaction *badger.Txn) error {
+		err := transaction.Set(newBlock.Hash, newBlock.Serialize())
+		Handle(err)
+		err = transaction.Set([]byte("lh"), newBlock.Hash)
+
+		chain.LastHash = newBlock.Hash
+		return err
+	})
+	Handle(err)
+}
+
+// Iterator takes our BlockChain struct and returns it as a BlockCHainIterator struct
+func (chain *BlockChain) Iterator() *BlockChainIterator {
+	iterator := BlockChainIterator{chain.LastHash, chain.Database}
+
+	return &iterator
+}
+
+// Next will iterate through the BlockChainIterator
+func (iterator *BlockChainIterator) Next() *Block {
+	var block *Block
+
+	err := iterator.Database.View(func(txn *badger.Txn) error {
+		item, err := txn.Get(iterator.CurrentHash)
+		Handle(err)
+
+		err = item.Value(func(val []byte) error {
+			block = Deserialize(val)
+			return nil
+		})
+		Handle(err)
+		return err
+	})
+	Handle(err)
+
+	iterator.CurrentHash = block.PrevHash
+
+	return block
 }

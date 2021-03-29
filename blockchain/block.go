@@ -47,9 +47,7 @@ func (b *Block) Serialize() []byte {
 
 	err := encoder.Encode(b)
 
-	if err != nil {
-		log.Panic(err)
-	}
+	Handle(err)
 
 	return res.Bytes()
 }

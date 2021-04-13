@@ -39,7 +39,7 @@ func (bloc *Block) HashTransactions() []byte {
 	for _, tx := range bloc.Transactions {
 		txHashes = append(txHashes, tx.ID)
 	}
-	txHash = sha256.Sum256(bytes.Join(txHashes, []byte))
+	txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
 
 	return txHash[:]
 }

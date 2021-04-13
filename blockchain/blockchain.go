@@ -8,6 +8,8 @@ import (
 
 const (
 	dbPath = "./tmp/blocks"
+	dbFile = "./tmp/blocks/MANIFEST"
+	genesisData = "First Transaction from Genesis"
 )
 
 //BlockChain is an array of block pointers

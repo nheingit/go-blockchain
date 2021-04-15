@@ -33,7 +33,7 @@ func DBexists() bool {
 }
 
 //ContinueBlockChain will be called to append to an existing blockchain
-func ContinueBlockChain() *BlockChain {
+func ContinueBlockChain(address string)*BlockChain {
 	if !DBexists() {
 		fmt.Println("No blockchain found, please create one first")
 		runtime.Goexit()

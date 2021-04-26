@@ -68,7 +68,8 @@ func (w *Wallet) Address() []byte {
 
 	checksum := Checksum(versionedHash)
 
-	versionedHash = append(versionedHash, checksum...)
+	finalHash := append(versionedHash, checksum...)
+	address := base58Encode(finalHash)
 
-	return base58Encode(versionedHash)
+	return address
 }
